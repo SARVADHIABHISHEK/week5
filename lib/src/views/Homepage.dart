@@ -1,10 +1,8 @@
 import 'package:countertask/src/blocs/apibloc.dart';
 import 'package:countertask/src/provider/api_provider.dart';
-import 'package:countertask/src/views/sliderimages.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import '../models/api_model.dart';
+import 'package:encrypt/encrypt.dart' as lib1;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -17,10 +15,26 @@ class _HomePageState extends State<HomePage> {
   ApiProvider provider = ApiProvider();
   ApiBloc apiBloc = ApiBloc();
 
-  @override
-  void initState() {
-    super.initState();
-    apiBloc.getData();
+  lib1.Encrypted? encrypted;
+  String? decrypted;
+  lib1.Encrypter? encrypter;
+
+  final TextEditingController _converter = TextEditingController();
+
+  void _convertMethod(String value) {
+    final key = lib1.Key.fromUtf8('Abcdefghijklpmadmuytrewrtyuijhyt');
+    final iv = lib1.IV.fromLength(16);
+    encrypter = lib1.Encrypter(lib1.AES(key));
+    encrypted = encrypter?.encrypt(value, iv: iv);
+    setState((){});
+  }
+
+
+  void _decrypted() {
+    final iv = lib1.IV.fromLength(16);
+    decrypted = encrypter?.decrypt(encrypted!, iv: iv);
+    print(decrypted);
+    setState((){});
   }
 
   @override
@@ -29,13 +43,17 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Api integration'),
       ),
-      body: StreamBuilder<List<ApiModel>>(
+      /*body: StreamBuilder<List<ApiModel>>(
           stream: apiBloc.apidata,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               return GridView.builder(
                   itemCount: snapshot.data!.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 3 : 2,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: MediaQuery.of(context).orientation ==
+                            Orientation.landscape
+                        ? 3
+                        : 2,
                     crossAxisSpacing: 1,
                     mainAxisSpacing: 1,
                   ),
@@ -45,10 +63,15 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.all(10.0),
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.push(context, CupertinoPageRoute(builder: (context) => ImagesSlider(todo: snapshot.data!)));
+                          Navigator.push(
+                              context,
+                              CupertinoPageRoute(
+                                  builder: (context) =>
+                                      ImagesSlider(todo: snapshot.data!)));
                         },
                         child: Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
                           shadowColor: Colors.black,
                           elevation: 10.0,
                           child: Column(
@@ -68,8 +91,8 @@ class _HomePageState extends State<HomePage> {
                                       alignment: Alignment.center,
                                       width: double.infinity,
                                       child: Text(
-                                        item!.title.toString(),
-                                        style: TextStyle(
+                                        item.title.toString(),
+                                        style: const TextStyle(
                                             fontWeight: FontWeight.bold),
                                       ))),
                             ],
@@ -79,9 +102,41 @@ class _HomePageState extends State<HomePage> {
                     );
                   });
             } else {
-              return Center(child: Text('loading'));
+              return const Center(child: Text('loading'));
             }
-          }),
+          }),*/
+      body: Column(
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                controller: _converter,
+                decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder()),
+              ),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                  onPressed: () {
+                    _convertMethod(_converter.text);
+                  },
+                  child: const Text('EnCrypt')),
+              TextButton(
+                  onPressed: () {
+                    _converter.clear();
+                    _decrypted();
+                  },
+                  child: const Text('Decrypt')),
+            ],
+          ),
+          decrypted != null ?  Text('$decrypted') : Text('${encrypted?.base64}'),
+        ],
+      ),
     );
   }
 }

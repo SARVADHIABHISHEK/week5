@@ -1,4 +1,5 @@
-import 'package:countertask/src/views/Homepage.dart';
+
+import 'package:countertask/src/views/persistance_tab_bar.dart';
 import 'package:flutter/material.dart';
 
 class MyApp extends StatefulWidget {
@@ -12,7 +13,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: HomePage(),
+      home: PersistenceTabBar(),
     );
   }
 }
